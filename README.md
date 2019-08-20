@@ -1,3 +1,3 @@
-# data_base from scratch
+# data base from scratch
 
 You can find source [HERE](https://cstack.github.io/db_tutorial/)
