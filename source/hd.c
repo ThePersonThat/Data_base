@@ -31,11 +31,11 @@ void read_input(InputBuffer* input_buffer)
 
 void close_input_buffer(InputBuffer* input_buffer) 
 {
-    free(input_buffer->buffer); // очистка выделанного буфера
+    free(input_buffer->buffer); // очистка выделенного буфера
     free(input_buffer); // очистка структуры
 }
 
-MetaComandResult do_meta_command(InputBuffer* input_buffer)
+MetaCommandResult do_meta_command(InputBuffer* input_buffer)
 {
     if(strcmp(input_buffer->buffer, ".exit") == 0)
     {
@@ -48,16 +48,16 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
 {
     if(strncmp(input_buffer->buffer, "insert", 6) == 0)
     {
-        statement->type = STATEMENT_INSERT;
+        statement->type = STATEMENT_INSERT; // состояние INSERT
         int args_assigned = sscanf(input_buffer->buffer, "insert %d %s %s", &(statement->row_to_insert.id), 
-            statement->row_to_insert.username, statement->row_to_insert.email);
+            statement->row_to_insert.username, statement->row_to_insert.email); // считывание 3 параметров 
 
-        if(args_assigned < 3)
+        if(args_assigned < 3) // если считанных параметров меньше 3
         {
-            return PREPARE_SYNTAX_ERROR;
+            return PREPARE_SYNTAX_ERROR; // возращаем синтаксическую ошибку
         }
 
-        return PREPARE_SUCCESS;
+        return PREPARE_SUCCESS; 
     }
 
     if(strcmp(input_buffer->buffer, "select") == 0)
@@ -69,55 +69,55 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     return PREPARE_UNRECOGNIZED_STATEMENT; // возращаем что такого оператора нет
 }
 
-ExecuteResult execute_statement(Statement* statement, Table* table)
+ExecuteResult execute_statement(Statement* statement, Table* table) 
 {
-    switch (statement->type)
+    switch (statement->type) 
     {
     case (STATEMENT_INSERT):
-        return execute_insert(statement, table);
+        return execute_insert(statement, table); // выполнение оператора INSERT
     case (STATEMENT_SELECT):
-        return execute_select(statement, table);
+        return execute_select(statement, table); // выполнение оператора SELECT
     }
 }
 
 void serialize_row(Row* source, void* destination) 
 {
-    memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
-    memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE);
-    memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE);
+    memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE); // запись ид
+    memcpy(destination + USERNAME_OFFSET, &(source->username), USERNAME_SIZE); // Переход на (ID_OFFSET + ID_SIZE) байт и запись имени
+    memcpy(destination + EMAIL_OFFSET, &(source->email), EMAIL_SIZE); // Переход на (USERNAME_OFFSET + USERNAME_SIZE) байт и запись емайла 
 }
 
 void deserialize_row(void* source, Row* destination) 
 {
-    memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
-    memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE);
-    memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+    memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE); // Переход на ID_OFFSET байт и считывания ID_SIZE байта 
+    memcpy(&(destination->username), source + USERNAME_OFFSET, USERNAME_SIZE); // Переход на USERNAME_OFFSET байт и считывания USERNAME_SIZE байта 
+    memcpy(&(destination->email), source + EMAIL_OFFSET, EMAIL_SIZE); // Переход на EMAIL_OFFSET байт и считывания EMAIL_SIZE байта 
 }
 
 void* row_slot(Table* table, uint32_t row_num)
 {
-    uint32_t page_num = row_num / ROWS_PER_PAGE;
-    void* page = table->pages[page_num];
+    uint32_t page_num = row_num / ROWS_PER_PAGE; // выбор страницы 
+    void* page = table->pages[page_num]; 
     if(page == NULL)
     {
         page = table->pages[page_num] = malloc(PAGE_SIZE);
     }
-    uint32_t row_offset = row_num % ROWS_PER_PAGE;
-    uint32_t byte_offset = row_offset * ROW_SIZE;
+    uint32_t row_offset = row_num % ROWS_PER_PAGE; // смещение строки
+    uint32_t byte_offset = row_offset * ROW_SIZE; // смещение к новой строке
     return page + byte_offset;
 }
 
 ExecuteResult execute_insert(Statement* statment, Table* table)
 {
-    if(table->num_rows >= TABLE_MAX_ROWS)
+    if(table->num_rows >= TABLE_MAX_ROWS) // проверка на заполненность таблицы
     {
         return EXECUTE_TABLE_FULL;
     }
 
     Row* row_to_insert = &(statment->row_to_insert);
 
-    serialize_row(row_to_insert, row_slot(table, table->num_rows));
-    table->num_rows += 1;
+    serialize_row(row_to_insert, row_slot(table, table->num_rows)); // параметры - это сама таблица и смещение 
+    table->num_rows += 1; 
 
     return EXECUTE_SUCCESS;
 }
@@ -127,19 +127,19 @@ ExecuteResult execute_select(Statement* statement, Table* table)
     Row row;
     for(uint32_t i = 0; i < table->num_rows; i++)
     {
-        deserialize_row(row_slot(table, i), &row);
-        print_row(&row);
+        deserialize_row(row_slot(table, i), &row); // считывание строк из памяти 
+        print_row(&row); // печать строки 
     }
 
     return EXECUTE_SUCCESS;
 }
 
 
-Table* new_table()
+Table* new_table() 
 {
-    Table* table = malloc(sizeof(Table));
+    Table* table = malloc(sizeof(Table)); 
     table->num_rows = 0;
-    for(uint32_t i = 0; table->pages[i]; i++)
+    for(uint32_t i = 0; i < TABLE_MAX_PAGES; i++)
     {
         table->pages[i] = NULL;
     }
@@ -147,9 +147,9 @@ Table* new_table()
     return table;
 }
 
-void free_table(Table* table)
+void free_table(Table* table) 
 {
-    for(int i = 0; table->pages[i]; i++)
+    for(int i = 0; table->pages[i]; i++) 
     {
         free(table->pages[i]);
     }

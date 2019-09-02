@@ -30,16 +30,16 @@ int main()
             case (PREPARE_SUCCESS): // на случай правильного ввода
                 break;
 
-            case (PREPARE_SYNTAX_ERROR):
+            case (PREPARE_SYNTAX_ERROR): // на случай неправильного ввода
                 printf("Syntax error. Could not parse statement.\n");
                 continue;
 
-            case (PREPARE_UNRECOGNIZED_STATEMENT): // на случай неправильного ввода
+            case (PREPARE_UNRECOGNIZED_STATEMENT): 
                 printf("Unrecognized keyword at start of '%s'. \n", input_buffer->buffer);
                 continue;
         }
 
-        switch (execute_statement(&statement, table))
+        switch (execute_statement(&statement, table)) // выполнение оператора 
         {
         case (EXECUTE_SUCCESS):
             printf("Executed.\n");
