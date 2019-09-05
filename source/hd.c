@@ -41,6 +41,17 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer)
     {
         exit(EXIT_SUCCESS);
     }
+
+    if(strcmp(input_buffer->buffer, ".clear") == 0 || strcmp(input_buffer->buffer,".cls") == 0)
+    {
+        return clear_screen();
+    }
+
+    if(strncmp(input_buffer->buffer, ".help", 4) == 0)
+    {
+        return help(input_buffer);
+    }
+
     else return META_COMMAND_UNRECOGNIZED_COMMAND; // возращаем что такой мета команды нет
 }
 
@@ -157,7 +168,74 @@ void free_table(Table* table)
     free(table);
 }
 
+
+PrepareResult prepare_isnert(InputBuffer* input_buffer, Statement* statement)
+{
+    char* keyword = strtok(input_buffer->buffer, " "); // разделяем строку на подстроки (оператор)
+    char* id_string = strtok(NULL, " "); // разделяем строку на подстроки (номер записаи)
+    char* username = strtok(NULL, " "); // разделяем строку на подстроки (имя пользователя)
+    char* email = strtok(NULL, " "); // разделяем строку на подстроки (почта пользователя)
+
+    if(id_string == NULL || username == NULL || email == NULL) // проверка на пустоту данных
+    return PREPARE_SYNTAX_ERROR;
+
+    int id = atoi(id_string);
+
+    if(id < 0)
+        return PREPARE_NEGATIVE_ID;
+
+    if(strlen(username) > COLUMN_USERNAME_SIZE) // проверка на размер введенного ника 
+        return PREPARE_STRING_TOO_LONG;
+
+    if(strlen(email) > COLUMN_EMAIL_SIZE) // проверка на размер введенного емайла
+        return PREPARE_STRING_TOO_LONG;
+
+    statement->row_to_insert.id = id; 
+    strcpy(statement->row_to_insert.username, username);
+    strcpy(statement->row_to_insert.email, email);
+
+    return PREPARE_SUCCESS;
+}
+
 void print_row(Row* row)
 {
     printf("(%d %s %s)\n", row->id, row->username, row->email);
+}
+
+MetaCommandResult clear_screen()
+{
+    system("cls");
+    return META_COMMAND_SUCCESS;
+}
+
+MetaCommandResult help(InputBuffer* input_buffer)
+{
+    char buf[8];
+
+    int args_assigned = sscanf(input_buffer->buffer, ".help %s", buf);
+
+    printf("%d", args_assigned);
+
+    if(args_assigned > 1 || args_assigned == -1)  
+        return META_COMMAND_HELP_WRONG;
+
+    if(strlen(buf) > 8)
+        return META_COMMAND_HELP_LONG;
+    
+    if(strcmp(buf, "meta") == 0)
+    {
+        printf( "\n\t\".cls\" or \"clear\" - to clear screen of console\n"
+                "\t\".exit\" - exit the program\n\n"
+              );
+
+        return META_COMMAND_SUCCESS;
+    }
+
+    if(strcmp(buf, "oper") == 0)
+    {
+        printf( "\n\t\"insert\" - insert a new row. Expamle: insert 1 Bastard alex@jpeg\n"
+                "\t\"select\" - print all the rows\n"
+              ); 
+        return META_COMMAND_SUCCESS;
+    }
 }

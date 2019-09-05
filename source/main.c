@@ -15,6 +15,14 @@ int main()
         {
             switch (do_meta_command(input_buffer)) // какая именно мета команда используется 
             {
+            case(META_COMMAND_HELP_WRONG):
+                printf("Wrong the string. Expamle: \".help meta\" - for meta-commands or \".help oper\" - for operators.\n");
+                continue;
+
+            case(META_COMMAND_HELP_LONG):
+                printf("The arguments are too long.\n");
+                continue;
+
             case (META_COMMAND_SUCCESS): // на случай правильного ввода
                 continue;
 
@@ -27,6 +35,14 @@ int main()
         Statement statement;
         switch (prepare_statement(input_buffer, &statement)) // проверка какой был оператор введен
         {
+            case (PREPARE_NEGATIVE_ID):
+                printf("ID must be positive"); // на случай отрицательного id
+                continue;
+
+            case (PREPARE_STRING_TOO_LONG): // на случай слишком длинной строки
+                printf("The string is too long");
+                continue;
+
             case (PREPARE_SUCCESS): // на случай правильного ввода
                 break;
 

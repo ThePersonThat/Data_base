@@ -34,6 +34,8 @@ typedef enum
 
 typedef enum
 {
+    META_COMMAND_HELP_WRONG,
+    META_COMMAND_HELP_LONG,
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
 }MetaCommandResult; // перечисление для результатов мета команд, таких как ".exit"
@@ -41,6 +43,8 @@ typedef enum
 typedef enum
 {
     PREPARE_SUCCESS, 
+    PREPARE_NEGATIVE_ID,
+    PREPARE_STRING_TOO_LONG,
     PREPARE_SYNTAX_ERROR,
     PREPARE_UNRECOGNIZED_STATEMENT // перечисление для результатов мета команд 
 }PrepareResult;
@@ -54,8 +58,8 @@ typedef enum
 typedef struct 
 {
     uint32_t id;
-    char username[COLUMN_USERNAME_SIZE];
-    char email[COLUMN_EMAIL_SIZE];
+    char username[COLUMN_USERNAME_SIZE + 1];
+    char email[COLUMN_EMAIL_SIZE + 1];
 } Row; // пользовательская строка
 
 
@@ -94,4 +98,7 @@ void* row_slot(Table* table, uint32_t row_num); // поиск смещения
 Table* new_table(); // создание таблицы
 void free_table(Table* table); // очистка памяти
 void print_row(Row* row); // печать строки
+PrepareResult prepare_isnert(InputBuffer* input_buffer, Statement* statement); // проверка на корректность аргументов
+MetaCommandResult clear_screen(); // очистка консоли
+MetaCommandResult help(InputBuffer* input_buffer); // просмотр команд
 #endif
