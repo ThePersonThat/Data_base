@@ -210,28 +210,36 @@ MetaCommandResult clear_screen()
 
 MetaCommandResult help(InputBuffer* input_buffer)
 {
-    char buf[8];
+    char* keyword = strtok(input_buffer->buffer, " ");
+    char* flag = strtok(NULL, " ");
+   
 
-    int args_assigned = sscanf(input_buffer->buffer, ".help %s", buf);
+    if(flag == NULL)  
+    {
+        printf("\n\tData base by alex.jpeg & Bastard\n\tAdditional arguments for the help statement:\n\tmeta - list of meta instructions\n\toper - list of operators\n\n");
+        return META_COMMAND_SUCCESS;
+    }
 
-    if(args_assigned > 1 || args_assigned == -1)  
+     char* other = strtok(NULL, " ");
+
+    if(other != NULL)
         return META_COMMAND_HELP_WRONG;
 
-    if(strlen(buf) > 8)
+    if(strlen(flag) > 8)
         return META_COMMAND_HELP_LONG;
     
-    if(strcmp(buf, "meta") == 0)
+    if(strcmp(flag, "meta") == 0)
     {
-        printf( "\n\t\".cls\" or \"clear\" - to clear screen of console\n"
+        printf( "\n\t\".cls\" or \".clear\" - to clear screen of console\n"
                 "\t\".exit\" - exit the program\n\n"
               );
 
         return META_COMMAND_SUCCESS;
     }
 
-    if(strcmp(buf, "oper") == 0)
+    if(strcmp(flag, "oper") == 0)
     {
-        printf( "\n\t\"insert\" - insert a new row. Expamle: insert 1 Bastard alex@jpeg\n"
+        printf( "\n\t\"insert\" - insert a new row. Example: \"insert 1 Bastard alex@jpeg\"\n"
                 "\t\"select\" - print all the rows\n\n"
               ); 
         return META_COMMAND_SUCCESS;
