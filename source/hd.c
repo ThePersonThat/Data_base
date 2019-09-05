@@ -47,7 +47,7 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer)
         return clear_screen();
     }
 
-    if(strncmp(input_buffer->buffer, ".help", 4) == 0)
+    if(strncmp(input_buffer->buffer, ".help", 5) == 0)
     {
         return help(input_buffer);
     }
@@ -214,8 +214,6 @@ MetaCommandResult help(InputBuffer* input_buffer)
 
     int args_assigned = sscanf(input_buffer->buffer, ".help %s", buf);
 
-    printf("%d", args_assigned);
-
     if(args_assigned > 1 || args_assigned == -1)  
         return META_COMMAND_HELP_WRONG;
 
@@ -234,8 +232,10 @@ MetaCommandResult help(InputBuffer* input_buffer)
     if(strcmp(buf, "oper") == 0)
     {
         printf( "\n\t\"insert\" - insert a new row. Expamle: insert 1 Bastard alex@jpeg\n"
-                "\t\"select\" - print all the rows\n"
+                "\t\"select\" - print all the rows\n\n"
               ); 
         return META_COMMAND_SUCCESS;
     }
+
+    return META_COMMAND_HELP_WRONG;
 }
