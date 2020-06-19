@@ -1,70 +1,71 @@
-/*compile with hd.c*/
-#include "hd_h.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-int main()
+#include "input.h"
+#include "mtcom.h"
+#include "operator.h"
+
+int main(int argc, char* argv[])
 {
-    InputBuffer* input_buffer = new_input_buffer(); // Создание буфера для получения команд от пользователя 
-    Table* table = new_table();
+	if (argc < 2)
+	{
+		printf("Must supply a database filename.\n");
+		exit(EXIT_FAILURE);
+	}
 
-    while(1)
+	char* filename = argv[1];
+	Table* table = db_open(filename);
+   
+    InputBuffer* input_buffer = new_input_buffer();
+    
+    while (1)
     {
-        print_prompt(); // инвайт на ввод пользователя
-        read_input(input_buffer); // чтение 
+        print_promt();
+        read_input(input_buffer);
 
-        if(input_buffer->buffer[0] == '.') // сравниваем на ввод мета команд
+        if(input_buffer->buffer[0] == '.')
         {
-            switch (do_meta_command(input_buffer)) // какая именно мета команда используется 
+            switch (do_meta_command(input_buffer, table)) 
             {
-            case(META_COMMAND_HELP_WRONG):
-                printf("Wrong the string. Expamle: \".help meta\" - for meta-commands or \".help oper\" - for operators.\n");
-                continue;
-
-            case(META_COMMAND_HELP_LONG):
-                printf("The arguments are too long.\n");
-                continue;
-
-            case (META_COMMAND_SUCCESS): // на случай правильного ввода
-                continue;
-
-            case (META_COMMAND_UNRECOGNIZED_COMMAND): // на случай неправильного ввода
-                printf("Unrecognized command '%s' \n", input_buffer->buffer);
-                continue;
+                case META_COMMAND_SUCCESS:
+                    continue;
+                case META_COMMAND_UNRECOGNIZED_COMMAND:
+                    printf("Unrecognized command '%s'\n", input_buffer->buffer);
+                    continue;
             }
         }
 
         Statement statement;
-        switch (prepare_statement(input_buffer, &statement)) // проверка какой был оператор введен
+        switch (prepare_statement(input_buffer, &statement))
         {
-            case (PREPARE_NEGATIVE_ID):
-                printf("ID must be positive"); // на случай отрицательного id
-                continue;
-
-            case (PREPARE_STRING_TOO_LONG): // на случай слишком длинной строки
-                printf("The string is too long");
-                continue;
-
-            case (PREPARE_SUCCESS): // на случай правильного ввода
+            case PREPARE_SUCCESS:
                 break;
-
-            case (PREPARE_SYNTAX_ERROR): // на случай неправильного ввода
-                printf("Syntax error. Could not parse statement.\n");
+            case PREPARE_SYNTAX_ERROR:
+                printf("Syntax error. Could not parse statment.\n");
                 continue;
+			case PREPARE_STRING_TOO_LONG:
+				printf("String is too long.\n");
+				break;
+			case PREPARE_NEGATIVE_ID:
+				printf("ID must be positive.\n");
+				break;
+            case PREPARE_UNRECOGNIZED_STATEMENT:
+                printf("Unrecognized keyword at start of '%s'.\n", input_buffer->buffer);
 
-            case (PREPARE_UNRECOGNIZED_STATEMENT): 
-                printf("Unrecognized keyword at start of '%s'. \n", input_buffer->buffer);
-                continue;
+            continue;
         }
 
-        switch (execute_statement(&statement, table)) // выполнение оператора 
+        switch (execute_statement(&statement, table))
         {
-        case (EXECUTE_SUCCESS):
-            printf("Executed.\n");
-            break;
-        case (EXECUTE_TABLE_FULL):
-            printf("Error: Table full.\n");
-            break;
+            case EXECUTE_SUCCCESS:
+                printf("Executed.\n");
+                break;
+			case EXECUTE_DUPLICATE_KEY:
+				printf("Error: Duplicate key.\n");
+				break;
+            case EXECUTE_TABLE_FULL:
+                printf("Error: Table full.\n");
+                break;
         }
-    }  
-    return 0;
+    }
 }
-
